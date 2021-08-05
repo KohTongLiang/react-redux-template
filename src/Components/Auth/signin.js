@@ -100,10 +100,10 @@ function SignIn(props) {
                     <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
                         <FormGroup>
                             <FormControl>
-                                <InputLabel>Email</InputLabel>
-                                <Input {...register('email', { required: true })} />
-                                <FormHelperText>Enter the email you used for registration</FormHelperText>
-                                <FormHelperText>{errors.email && <span className={classes.errorText}>Email is required</span>}</FormHelperText>
+                                <InputLabel>Username</InputLabel>
+                                <Input {...register('username', { required: true })} />
+                                <FormHelperText>Enter the username you used for registration</FormHelperText>
+                                <FormHelperText>{errors.username && <span className={classes.errorText}>Username is required</span>}</FormHelperText>
                             </FormControl>
                         </FormGroup>
 

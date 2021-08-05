@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 // import material ui components
 import {
-    AppBar, Toolbar, Typography, IconButton, Button, MenuItem, Menu, Hidden, List, ListItem, ListItemText, Divider,
+    AppBar, Toolbar, Typography, IconButton, Button, MenuItem, Menu, Hidden, List, ListItem, ListItemText,
     Drawer, ListItemIcon
 } from '@material-ui/core';
 import { AccountCircle, Menu as MenuIcon, Home as HomeIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 
 // import constants
-import { APP_NAME } from '../../Constants/values';
-import { STYLE } from '../../Constants/styles';
-import { ARTICLES, SIGN_IN } from '../../Constants/routes';
+import { APP_NAME } from '../../Constants/values'
+import { STYLE } from '../../Constants/styles'
+import { ARTICLES, SIGN_IN } from '../../Constants/routes'
+import SignOut from '../Auth/signout'
 
 const useStyles = makeStyles((theme) => (STYLE));
 
@@ -48,6 +49,10 @@ function NavigationBar(props) {
         }
         setState({ ...state, [anchor]: open });
     };
+
+    const handleLogout = () => {
+
+    }
 
     return (
         <div className={classes.root}>
@@ -158,6 +163,7 @@ function NavigationBar(props) {
                             >
                                 <MenuItem onClick={handleClose}>Profile</MenuItem>
                                 <MenuItem onClick={handleClose}>My account</MenuItem>
+                                <MenuItem><SignOut /></MenuItem>
                             </Menu>
                         </div>
                     )}

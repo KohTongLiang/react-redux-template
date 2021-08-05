@@ -1,7 +1,7 @@
 import React from 'react';
 
 // import material ui components
-import { Box, Typography, Grid } from '@material-ui/core';
+import { Typography, Grid } from '@material-ui/core';
 // import { AccountCircle, Menu as MenuIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 

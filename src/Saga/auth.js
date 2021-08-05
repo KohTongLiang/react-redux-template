@@ -1,26 +1,32 @@
-import { put, takeEvery, call, fork, take } from 'redux-saga/effects';
-import axios from 'axios';
-import { SIGN_IN, SIGN_UP, SIGN_IN_SUCCESS, SIGN_IN_FAILURE, SIGN_UP_SUCCESS, SIGN_UP_FAILURE } from '../Constants/actiontype';
+import { put, takeEvery, call } from 'redux-saga/effects'
+import { AsyncStorage } from 'AsyncStorage'
+import axios from 'axios'
+import { SIGN_IN, SIGN_UP, SIGN_IN_SUCCESS, SIGN_IN_FAILURE, SIGN_UP_SUCCESS, SIGN_UP_FAILURE,
+    SIGN_OUT_FAILURE, SIGN_OUT_SUCCESS, SIGN_OUT, CHECK_AUTH } from '../Constants/actiontype'
 
 export default function* AuthSaga() {
-    yield takeEvery(SIGN_UP, handleSignUp);
-    yield takeEvery(SIGN_IN, handleSignIn);
+    yield takeEvery(SIGN_UP, handleSignUp)
+    yield takeEvery(SIGN_IN, handleSignIn)
+    yield takeEvery(SIGN_OUT, handleSignOut)
+    yield takeEvery(CHECK_AUTH, handleCheckAuth)
 }
+
+const api_url = process.env.REACT_APP_API_ENDPOINT
 
 // make a call to authentication server and get back a JWT.
 function* handleSignIn(action) {
     try {
-        const resp = yield call(() => axios.post(process.env.REACT_APP_API_URL + '/api/auth/login', {
-            email: action.payload.email,
+        const resp = yield call(() => axios.post(`${api_url}/auth/login`, {
+            username: action.payload.username,
             password: action.payload.password,
         }).then(function (data) {
             return data;
         }));
 
-        if (resp.data.auth) {
+        if (resp.data.success) {
+            yield call(storeToken, resp.data.token)
             yield put({
                 type: SIGN_IN_SUCCESS, payload: {
-                    token: resp.data.token,
                     username: action.payload.username,
                 }
             });
@@ -35,7 +41,7 @@ function* handleSignIn(action) {
 // Handler to perform sign up action. Takes input by user and create a user account on firebase authentication service
 function* handleSignUp(action) {
     try {
-        const resp = yield call(() => axios.post(process.env.REACT_APP_API_URL + '/api/auth/register', {
+        const resp = yield call(() => axios.post(`${api_url}/auth/register`, {
             email: action.payload.email,
             name: action.payload.username,
             password: action.payload.password,
@@ -43,10 +49,10 @@ function* handleSignUp(action) {
             return data;
         }));
 
-        if (resp.data.auth) {
+        if (resp.data.success) {
+            yield call(storeToken, resp.data.token)
             yield put({
                 type: SIGN_UP_SUCCESS, payload: {
-                    token: resp.data.token,
                     username: action.payload.username,
                 }
             });
@@ -55,5 +61,67 @@ function* handleSignUp(action) {
         }
     } catch (err) {
         yield put({ type: SIGN_UP_FAILURE, payload: err.message });
+    }
+}
+
+function* handleSignOut(action) {
+    try {
+        let token = yield call(getToken)
+        const resp = yield call(() => axios.get(`${api_url}/auth/logout`,
+            {
+                headers: { 'Authorization': `Bearer ${token}`}
+            }
+        ).then(data => {
+            return data
+        }))
+
+        if (resp.data.success) {
+            yield call(storeToken, '')
+            yield put({ type: SIGN_OUT_SUCCESS })
+        }
+    } catch (err) {
+        yield put({ type: SIGN_OUT_FAILURE, payload: err.message })
+    }
+}
+
+function* handleCheckAuth(action) {
+    try {
+        let token = yield call(getToken)
+        const resp = yield call(() => axios.get(`${api_url}/auth/me`,
+            {
+                headers: { 'Authorization': `Bearer ${token}`}
+            }
+        ).then(data => {
+            return data
+        }).catch(err => { 
+            return null
+        }))
+        
+        if(resp !== null) {
+            yield put({
+                type: SIGN_IN_SUCCESS, payload: {
+                    username: resp.data.username,
+                }
+            });
+        }
+    } catch (err) {
+        console.log(err)
+        yield put({ type: SIGN_IN_FAILURE, payload: err.message })
+    }
+}
+
+async function storeToken(token) {
+    try {
+        await AsyncStorage.setItem('token', token)
+    } catch (err) {
+        console.log('Error storing token ', err)
+    }
+}
+
+async function getToken() {
+    try {
+        return await AsyncStorage.getItem('token')
+    } catch (err) {
+        console.log('Error retrieving token ', err)
     }
 }
